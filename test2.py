@@ -10,8 +10,4 @@ k = players[players['position'] == 'K'].reset_index(drop=True)
 defs = players[players['position'] == 'DEF'].reset_index(drop=True)
 q = [qb, rb, wr, te, k, defs]
 
-l = []
-for i in q:
-    l.append(i.iloc[i['proj'].idxmax()]['proj'])
-    
-print(l)
+print(q[0].iloc[0].drop(['name', 'last_name', 'first_name']))
