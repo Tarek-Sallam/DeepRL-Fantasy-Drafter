@@ -13,7 +13,6 @@ class DraftEnv(Env):
         self.totalPts = 0.0
         self.round = 1
         self.max_rounds = 19
-        self.teams = teams
         self.state = (np.zeros(19), np.array(self.draftBoard.getTopProjections()))
 
     def step (self, action):
@@ -38,7 +37,7 @@ class DraftEnv(Env):
     def render(self):
         pass
     def reset(self):
-        self.draftBoard = DraftBoard(self.teams, random.randint(1, self.teams)) # reset draft board
+        self.draftBoard = DraftBoard(self.draftBoard.teams, random.randint(1, self.draftBoard.teams)) # reset draft board
         self.totalPts = 0.0 # reset total points
         self.round = 1 # reset the round
         self.state = (np.zeros(19), np.array(self.draftBoard.getTopProjections())) # reset the state

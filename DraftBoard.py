@@ -13,8 +13,13 @@ class DraftBoard():
         defs = players[players['position'] == 'DEF']
         self.players = [qb, rb, wr, te, k, defs]
 
+    ## removes a player at a given position and index from the draft board
     def remove_player(self, position: int, index: int) -> None:
         self.players[position].drop(index=index).reset_index(drop=True)
+
+    # go to the next agent draft pick by simulating the picking of (self.teams - 1) picks
+    def goToNext(self) -> None:
+        pass
 
     def getTopProjections(self) -> list[float]:
         l = []
