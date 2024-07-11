@@ -21,6 +21,7 @@ class DraftBoard():
     def goToNext(self) -> None:
         pass
 
+    # returns a list of the projections of the top players from each position
     def getTopProjections(self) -> list[float]:
         l = []
         for i in self.players:
