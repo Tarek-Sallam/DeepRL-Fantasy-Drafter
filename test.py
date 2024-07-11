@@ -1,6 +1,5 @@
-import pandas as pd
-import os
+from Environment import DraftEnv
 
-players = pd.read_csv(os.path.join(os.getcwd(), 'data', 'projection_data.csv'))
-print(players)
-print(players.iloc[players['proj'].idxmax()]['proj'])
+env = DraftEnv(10)
+
+print(env.observation_space.sample())
