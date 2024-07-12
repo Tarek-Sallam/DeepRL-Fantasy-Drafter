@@ -24,7 +24,10 @@ class DraftEnv(Env):
         if player[3] == 'SUB':
             self.totalPts += topPoints[action]
         playerFrame = pd.DataFrame({"display": [player[0]], "position": [player[1]], "proj": [player[2]], 'slot': [player[3]]})
-        self.agentRoster = pd.concat([self.agentRoster, playerFrame])
+        if self.round == 1:
+            self.agentRoster = playerFrame
+        else:
+            self.agentRoster = pd.concat([self.agentRoster, playerFrame], ignore_index=True)
         self.draftBoard.removePlayer(action, 0) # remove the player from the available players
         self.round +=1 # increase the round of the draft
         if self.round > self.max_rounds:
