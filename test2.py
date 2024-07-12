@@ -10,4 +10,5 @@ k = players[players['position'] == 'K'].reset_index(drop=True)
 defs = players[players['position'] == 'DEF'].reset_index(drop=True)
 q = [qb, rb, wr, te, k, defs]
 
-print(q[0].iloc[0].drop(['name', 'last_name', 'first_name']))
+print(q[0].drop(1))
+#print(q[0].iloc[0].drop(['name', 'last_name', 'first_name']))

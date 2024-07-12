@@ -21,10 +21,10 @@ class DraftEnv(Env):
     def step (self, action):
         topPoints = self.state["top_projections"]
         roster, player = self.addToRoster(action)
-
-        if player.iloc[3] == 'SUB':
+        if player[3] == 'SUB':
             self.totalPts += topPoints[action]
-        self.agentRoster = pd.concat([self.agentRoster, player.to_frame()], ignore_index=True, axis=1)
+        playerFrame = pd.DataFrame({"display": [player[0]], "position": [player[1]], "proj": [player[2]], 'slot': [player[3]]})
+        self.agentRoster = pd.concat([self.agentRoster, playerFrame])
         self.draftBoard.removePlayer(action, 0) # remove the player from the available players
         self.round +=1 # increase the round of the draft
         if self.round > self.max_rounds:
@@ -49,38 +49,38 @@ class DraftEnv(Env):
         self.state = {"roster": np.zeros(26), "top_projections": np.array(self.draftBoard.getTopProjections())} # reset the state
         return self.state
 
-    def addToRoster(self, position) -> tuple[list, pd.DataFrame]:
+    def addToRoster(self, position) -> tuple[list, list]:
         roster = self.state["roster"].copy()
-        player = self.draftBoard.getPlayer(position, 0)
+        player = self.draftBoard.getPlayer(position, 0).to_list()
         if position == 1 or position ==2:
             if roster[position] == 0:
                 roster[position] = 1
-                player = pd.concat([player, pd.Series('RB1' if position == 1 else 'WR1')])
+                player.append('RB1' if position == 1 else 'WR1')
                 return (roster, player)
             elif roster[position + 5] == 0:
                 roster[position + 5] = 1
-                player = pd.concat([player, pd.Series('RB2' if position == 1 else 'WR2')])
+                player.append('RB2' if position == 1 else 'WR2')
                 return (roster, player)
             elif roster[8] == 0:
                 roster[8] = 1
-                player = pd.concat([player, pd.Series('W/R')])
+                player.append('W/R')
                 return (roster, player)
         else:
             if roster[position] == 0:
                 roster[position] = 1
                 if position == 0:
-                    player = pd.concat([player, pd.Series('QB')])
+                    player.append('QB')
                 elif position == 3:
-                    player = pd.concat([player, pd.Series('TE')])
+                    player.append('TE')
                 elif position == 4:
-                    player = pd.concat([player, pd.Series('K')])
+                    player.append('K')
                 elif position == 5:
-                    player = pd.concat([player, pd.Series('DEF')])
+                    player.append('DEF')
                 return (roster, player)
         i = 9
         while roster[i] == 1:
             i+=1
         roster[i] = 1
-        player = pd.concat([player, pd.Series('SUB')])
+        player.append('SUB')
         return (roster, player)
 

@@ -14,8 +14,9 @@ for episode in range(1, episodes+1):
         n_state, reward, done, info = env.step(action)
         score+=reward
         print('Action: {}'.format(action))
-        print(info['selected'].to_frame().reset_index())
 
-    print('Episode: {}, Score: {}'.format(episode, score))
     print('Roster: ')
+    print(env.agentRoster)
+    print('Episode: {}, Score: {}'.format(episode, score))
+ 
     
