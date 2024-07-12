@@ -10,14 +10,14 @@ from DraftBoard import DraftBoard
 class DraftEnv(Env):
     def __init__(self, teams, data_path):
         self.action_space = Discrete(6)
-        self.observation_space = Dict(roster = MultiBinary(26), top_projections= Box(low=np.zeros(6), high=np.array(np.ones(6) * np.inf)))
+        self.observation_space = Dict(roster = MultiBinary(27), top_projections= Box(low=np.zeros(6), high=np.array(np.ones(6) * np.inf)))
         self.draftBoard = DraftBoard(teams, random.randint(1, teams), data_path)
         self.agentRoster = pd.DataFrame(columns=['display', 'position', 'proj', 'slot'])
         self.data_path = data_path
         self.totalPts = 0.0
         self.round = 1
         self.max_rounds = 19
-        self.observation = OrderedDict(roster = np.zeros(26, dtype='int8'), top_projections = np.array(self.draftBoard.getTopProjections(), dtype='float32'))
+        self.observation = OrderedDict(roster = np.zeros(27, dtype='int8'), top_projections = np.array(self.draftBoard.getTopProjections(), dtype='float32'))
 
     def step (self, action):
         topPoints = self.observation["top_projections"] ### get the top projections
@@ -50,7 +50,7 @@ class DraftEnv(Env):
         self.agentRoster = pd.DataFrame(columns=['display', 'position', 'proj', 'slot'])
         self.totalPts = 0.0 # reset total points
         self.round = 1 # reset the round
-        self.observation = OrderedDict(roster = np.zeros(26, dtype='int8'), top_projections = np.array(self.draftBoard.getTopProjections(), dtype='float32')) # reset the state
+        self.observation = OrderedDict(roster = np.zeros(27, dtype='int8'), top_projections = np.array(self.draftBoard.getTopProjections(), dtype='float32')) # reset the state
         return self.observation, {}
 
     def addToRoster(self, position) -> tuple[list, list]:

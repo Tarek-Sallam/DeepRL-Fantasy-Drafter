@@ -19,11 +19,17 @@ class DraftBoard():
 
     ## removes a player at a given position and index from the draft board
     def removePlayer(self, position: int, index: int) -> None:
-        self.players[position] = self.players[position].drop(index=index).reset_index(drop=True)
+        if not self.players[position].empty:
+            self.players[position] = self.players[position].drop(index=index).reset_index(drop=True)
 
     ## returns a player's info at a given position and index from the draft board
     def getPlayer(self, position: int, index: int) -> pd.Series:
-        return self.players[position].iloc[index].drop(['name', 'last_name', 'first_name'])
+        if self.players[position].empty:
+            positions = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF']
+            item = {'display': 'NULL', 'position': positions[position], 'proj': 0.0}
+            return pd.Series(data=item, index=item.keys())
+        else:
+            return self.players[position].iloc[index].drop(['name', 'last_name', 'first_name'])
     
     # go to the next agent draft pick by simulating the picking of (self.teams - 1) picks
     def goToNext(self) -> None:
@@ -34,6 +40,9 @@ class DraftBoard():
     def getTopProjections(self) -> list[float]:
         l = []
         for i in self.players:
-            l.append(i.iloc[i['proj'].idxmax()]['proj'])
+            if i.empty:
+                l.append(0)
+            else:
+                l.append(i.iloc[i['proj'].idxmax()]['proj'])
         return l
     
