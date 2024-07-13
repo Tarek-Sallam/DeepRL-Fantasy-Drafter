@@ -13,15 +13,16 @@ num_actions = env.action_space.n ## get the number of actions
 ## our policy network, with 3 layers, 
 policyNetwork = tf.keras.models.Sequential()
 policyNetwork.add(tf.keras.layers.InputLayer(shape = (input_shape,)))
-policyNetwork.add(tf.keras.layers.Dense(10, activation='relu'))
-policyNetwork.add(tf.keras.layers.Dense(10, activation='relu'))
+policyNetwork.add(tf.keras.layers.Dense(128, activation='relu'))
+policyNetwork.add(tf.keras.layers.Dense(128, activation='relu'))
+policyNetwork.add(tf.keras.layers.Dense(128, activation='relu'))
 policyNetwork.add(tf.keras.layers.Dense(num_actions, activation='softmax'))
 learning_rate = 0.001
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 loss_fn = tf.keras.losses.SparseCategoricalCrossentropy()
 
-episodes = 2
+episodes = 10
 discount_factor = 0.99
 
 episode_rewards = []
@@ -82,6 +83,15 @@ for episode in range(episodes):
     episode_rewards.append(episode_reward) # append the reward of the episode
 
     policyNetwork.save(os.path.join(os.getcwd(), 'keras', 'fantasyDrafter.keras')) # save the network
+    # save the roster
     env.agentRoster.to_csv(os.path.join(os.getcwd(), 'trainingRosters', 'iteration_' + str(episode) + '_roster.csv'), index=False)
-
+    with open(os.path.join(os.getcwd(), 'rewards', 'reward_' + str(episode) + '.txt'), 'w') as f:
+        for r in rewards:
+            f.write(str(r) + '\n')
+    with open(os.path.join(os.getcwd(), 'discounted_rewards', 'discounted_reward_' + str(episode)) + '.txt', 'w') as f:
+        for r in discounted_rewards.numpy().tolist():
+            f.write(str(r) + '\n')
+    with open(os.path.join(os.getcwd(), 'loss', 'loss_' + str(episode)) + '.txt', 'w') as f:
+        f.write(str(loss))
+# print a summary
 policyNetwork.summary()
