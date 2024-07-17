@@ -28,6 +28,7 @@ class DraftEnv(Env):
             reward = topPoints[action] ## if player is not a sub, make the reward the points picked
         else:
             reward = 0
+        self.totalPts += reward
         playerFrame = pd.DataFrame({"display": [player[0]], "position": [player[1]], "proj": [player[2]], 'slot': [player[3]]}) ## create the dataframe to append to the roster
         if self.round == 1:
             self.agentRoster = playerFrame ## make the roster just the player if first round
@@ -37,10 +38,14 @@ class DraftEnv(Env):
         self.round +=1 # increase the round of the draft
         if self.round > self.max_rounds: 
             done = True ## if we have reached the end of the draft, done is true
+            if all(roster):
+                reward+=self.totalPts
+
         else:
             done = False
             self.draftBoard.goToNext() ## go to the next round
             
+
         self.observation = OrderedDict(roster = roster, top_projections = np.array(self.draftBoard.get_top_projections_normalized(), dtype='float32')) # set the state with the new roster, along with the new top projections
         info = {"selected": player}
         return self.observation, reward, False, done, info
