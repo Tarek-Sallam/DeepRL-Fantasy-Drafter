@@ -17,16 +17,17 @@ class DraftEnv(Env):
         self.totalPts = 0.0
         self.round = 1
         self.max_rounds = 19
-        self.observation = OrderedDict(roster = np.zeros(9, dtype='int8'), top_projections = np.array(self.draftBoard.getTopProjections(), dtype='float32'))
+        self.observation = OrderedDict(roster = np.zeros(9, dtype='int8'), top_projections = np.array(self.draftBoard.get_top_projections_normalized(), dtype='float32'))
 
     def step (self, action):
         topPoints = self.observation["top_projections"] ### get the top projections
         roster, player = self.addToRoster(action) ### add the player to the current roster given the action (return the modified roster state and player)
         if player[3] == 'K' or player[3] == 'DEF' and self.round <= 16:
-            self.totalPts += 0
+            reward = 0
         elif player[3] != 'SUB':
-            self.totalPts += topPoints[action] ## if player is not a sub, make the reward the points picked
-
+            reward = topPoints[action] ## if player is not a sub, make the reward the points picked
+        else:
+            reward = 0
         playerFrame = pd.DataFrame({"display": [player[0]], "position": [player[1]], "proj": [player[2]], 'slot': [player[3]]}) ## create the dataframe to append to the roster
         if self.round == 1:
             self.agentRoster = playerFrame ## make the roster just the player if first round
@@ -36,13 +37,11 @@ class DraftEnv(Env):
         self.round +=1 # increase the round of the draft
         if self.round > self.max_rounds: 
             done = True ## if we have reached the end of the draft, done is true
-            reward = self.totalPts
         else:
             done = False
-            reward = 0
             self.draftBoard.goToNext() ## go to the next round
             
-        self.observation = OrderedDict(roster = roster, top_projections = np.array(self.draftBoard.getTopProjections(), dtype='float32')) # set the state with the new roster, along with the new top projections
+        self.observation = OrderedDict(roster = roster, top_projections = np.array(self.draftBoard.get_top_projections_normalized(), dtype='float32')) # set the state with the new roster, along with the new top projections
         info = {"selected": player}
         return self.observation, reward, False, done, info
 
@@ -53,7 +52,7 @@ class DraftEnv(Env):
         self.agentRoster = pd.DataFrame(columns=['display', 'position', 'proj', 'slot'])
         self.totalPts = 0.0 # reset total points
         self.round = 1 # reset the round
-        self.observation = OrderedDict(roster = np.zeros(9, dtype='int8'), top_projections = np.array(self.draftBoard.getTopProjections(), dtype='float32')) # reset the state
+        self.observation = OrderedDict(roster = np.zeros(9, dtype='int8'), top_projections = np.array(self.draftBoard.get_top_projections_normalized(), dtype='float32')) # reset the state
         return self.observation, {}
 
     def addToRoster(self, position) -> tuple[list, list]:

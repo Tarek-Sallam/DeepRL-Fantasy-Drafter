@@ -4,7 +4,7 @@ import tensorflow_probability as tfp
 import numpy as np
 
 class PolicyGradientAgent():
-    def __init__(self, learning_rate = 0.001, discount_factor = 0.99, n_actions = 10, n_inputs = 10, n_layers = 2, layer_size = [16, 16]):
+    def __init__(self, learning_rate = 0.001, discount_factor = 0.99, epsilon = 0.5, n_actions = 10, n_inputs = 10, n_layers = 2, layer_size = [16, 16]):
         self.policy = self.buildModel(n_actions = n_actions, n_inputs = n_inputs, n_layers = n_layers, layer_size=layer_size)
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
         self.policy.compile(optimizer=self.optimizer)
@@ -17,6 +17,7 @@ class PolicyGradientAgent():
         self.reward_memory = []
         self.action_memory = []
         self.discount_factor = discount_factor
+        self.epsilon = epsilon
 
     def buildModel(self, n_actions=10, n_inputs=10, n_layers=2, layer_size=[16, 16]):
         model = tf.keras.Sequential([
@@ -29,12 +30,21 @@ class PolicyGradientAgent():
         
     def choose_action(self, observation):
         probs = self.policy.predict(observation)[0]
-        return np.random.choice(self.n_actions, p=probs)
+        return self.epsilon_greedy_choice(probs)
     
     def store_transition(self, observation, action, reward):
         self.reward_memory.append(reward)
         self.action_memory.append(action)
         self.state_memory.append(observation)
+
+    def epsilon_greedy_choice(self, probs):
+        if np.random.uniform() < self.epsilon:
+            return np.random.choice(len(probs))
+        else:
+            return np.random.choice(len(probs), p=probs)
+
+    def reset_epsilon(self, epsilon):
+        self.epsilon = epsilon
 
     def learn(self):
         rewards = self.reward_memory
@@ -45,7 +55,6 @@ class PolicyGradientAgent():
             returns.insert(0, G)
         returns = np.array(returns)
         returns = (returns - np.mean(returns))/(np.std(returns) + 1e-8) ## whiten the returns
-
         for state, action, return_t in zip(self.state_memory, self.action_memory, returns):
             state = tf.convert_to_tensor([np.array(state)], tf.float32)
             return_t = tf.convert_to_tensor(return_t, tf.float32)

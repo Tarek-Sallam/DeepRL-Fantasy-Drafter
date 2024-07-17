@@ -1,5 +1,6 @@
 import pandas as pd
 import random
+import numpy as np
 
 class DraftBoard():
     def __init__(self, teams: int, agent_pick: int, data_path: str):
@@ -37,12 +38,15 @@ class DraftBoard():
             self.removePlayer(random.randint(0, 3), random.randint(0, 3))
 
     # returns a list of the projections of the top players from each position
-    def getTopProjections(self) -> list[float]:
+    def get_top_projections_normalized(self) -> list[float]:
         l = []
         for i in self.players:
             if i.empty:
                 l.append(0)
             else:
                 l.append(i.iloc[i['proj'].idxmax()]['proj'])
-        return l
+        
+        l_norm = (l - np.min(l)) / (np.max(l) - np.min(l))
+        
+        return l_norm
     
