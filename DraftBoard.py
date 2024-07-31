@@ -6,6 +6,7 @@ class DraftBoard():
     def __init__(self, teams: int, agent_pick: int, data_path: str):
         self.teams = teams
         self.agent_pick = agent_pick
+        self.isReverse = False;
         players = pd.read_csv(data_path)
         qb = players[players['position'] == 'QB'].reset_index(drop=True)
         rb = players[players['position'] == 'RB'].reset_index(drop=True)
@@ -34,8 +35,15 @@ class DraftBoard():
     
     # go to the next agent draft pick by simulating the picking of (self.teams - 1) picks
     def goToNext(self) -> None:
-        for i in range(self.teams-1):
-            self.removePlayer(random.randint(0, 3), random.randint(0, 3))
+        if not self.isReverse:
+            for i in range(2(self.teams-self.agent_pick)):
+                self.removePlayer(random.randint(0, 3), random.randint(0, 3))
+            self.isReverse = True;
+        else:
+            for i in range(2(self.agent_pick - 1)):
+                self.removePlayer(random.randint(0, 3), random.randint(0, 3))
+    
+        
 
     # returns a list of the projections of the top players from each position
     def get_top_projections_normalized(self) -> list[float]:
@@ -49,4 +57,10 @@ class DraftBoard():
         l_norm = (l - np.min(l)) / (np.max(l) - np.min(l))
         
         return l_norm
+    
+    def get_agent_pick(self):
+        if not self.isReverse:
+            return self.agent_pick
+        else:
+            return (self.teams - self.agent_pick) + 1
     

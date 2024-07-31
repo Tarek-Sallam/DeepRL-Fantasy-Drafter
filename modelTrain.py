@@ -7,7 +7,7 @@ import numpy as np
 from Agent import PolicyGradientAgent
 from Environment import DraftEnv
 
-env = DraftEnv(10, os.path.join(os.getcwd(), 'data', 'projection_data.csv'))
+env = DraftEnv(12, os.path.join(os.getcwd(), 'data', 'projection_data.csv'))
 env = FlattenObservation(env)
 n_inputs = env.observation_space.shape[0] ## get the shape
 n_actions = env.action_space.n
