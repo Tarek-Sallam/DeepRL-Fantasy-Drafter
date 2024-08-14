@@ -7,14 +7,14 @@ import numpy as np
 from Agent import PolicyGradientAgent
 from Environment import DraftEnv
 
-env = DraftEnv(12, os.path.join(os.getcwd(), 'data', 'projection_data.csv'))
+env = DraftEnv(12, 19, os.path.join(os.getcwd(), 'data', 'projection_data.csv'), os.path.join(os.getcwd(), 'data', 'adp_data.npy'))
 env = FlattenObservation(env)
 n_inputs = env.observation_space.shape[0] ## get the shape
 n_actions = env.action_space.n
-init_epsilon = 0.8
+init_epsilon = 0.6
 final_epsilon = 0.2
 
-agent = PolicyGradientAgent(learning_rate=0.001, discount_factor=1, n_actions = n_actions, epsilon=init_epsilon, n_inputs=n_inputs, n_layers=4, layer_size=[10] * 4)
+agent = PolicyGradientAgent(learning_rate=0.001, discount_factor=0.99, n_actions = n_actions, epsilon=init_epsilon, n_inputs=n_inputs, n_layers=4, layer_size=[10] * 4)
 episodes = 1000
 
 for episode in range(1, episodes + 1):

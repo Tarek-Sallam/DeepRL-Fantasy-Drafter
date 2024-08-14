@@ -8,15 +8,17 @@ from collections import OrderedDict
 from DraftBoard import DraftBoard
 
 class DraftEnv(Env):
-    def __init__(self, teams, data_path):
+    def __init__(self, teams, rounds, projection_data_path, adp_data_path):
+        self.rounds = rounds
         self.action_space = Discrete(6)
-        self.observation_space = Dict(round=Discrete(self.max_rounds), pick=Discrete(teams), roster = MultiBinary(9), top_projections= Box(low=np.zeros(6), high=np.array(np.ones(6) * np.inf)))
-        self.draftBoard = DraftBoard(teams, random.randint(1, teams), data_path)
+        self.observation_space = Dict(round=Discrete(self.rounds), pick=Discrete(teams), roster = MultiBinary(9), top_projections= Box(low=np.zeros(6), high=np.array(np.ones(6) * np.inf)))
+        self.draftBoard = DraftBoard(teams, random.randint(1, teams), self.rounds, projection_data_path, adp_data_path)
         self.agentRoster = pd.DataFrame(columns=['display', 'position', 'proj', 'slot'])
-        self.data_path = data_path
+        self.projection_data_path = projection_data_path
+        self.adp_data_path = adp_data_path
         self.totalPts = 0.0
         self.round = 1
-        self.max_rounds = 19
+
         self.observation = OrderedDict(round = self.round, pick = self.draftBoard.get_agent_pick(), roster = np.zeros(9, dtype='int8'), top_projections = np.array(self.draftBoard.get_top_projections_normalized(), dtype='float32'))
 
     def step (self, action):
@@ -53,7 +55,7 @@ class DraftEnv(Env):
     def render(self):
         pass
     def reset(self):
-        self.draftBoard = DraftBoard(self.draftBoard.teams, random.randint(1, self.draftBoard.teams), self.data_path) # reset draft board
+        self.draftBoard = DraftBoard(self.draftBoard.teams, random.randint(1, self.draftBoard.teams), self.rounds, self.projection_data_path, self.adp_data_path) # reset draft board
         self.agentRoster = pd.DataFrame(columns=['display', 'position', 'proj', 'slot'])
         self.totalPts = 0.0 # reset total points
         self.round = 1 # reset the round

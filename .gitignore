@@ -1,3 +1,6 @@
 *.csv
 *.txt
 *.keras
+__pycache__
+trainingRosters
+keras
