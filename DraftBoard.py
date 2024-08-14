@@ -1,5 +1,4 @@
 import pandas as pd
-import random
 import numpy as np
 import scipy.stats as scpy
 
@@ -63,9 +62,7 @@ class DraftBoard():
         probs = self.calculate_probs(self.current_pick)
         self.current_pick+=1;
         choice = np.random.choice([0, 1, 2, 3, 4, 5], p=probs);
-        print("Pick #" + str(self.current_pick-1) + " position: " + str(choice))
         self.removePlayer(choice, 0)
-        print(self.get_top_projections_normalized())
 
     # returns a list of the projections of the top players from each position
     def get_top_projections_normalized(self) -> list[float]:
@@ -92,18 +89,22 @@ class DraftBoard():
         adp_data = np.load(path, allow_pickle=True).item()
         dist = {}
         for pos, data in adp_data.items():
-            alpha, beta, loc, scale = scpy.beta.fit(data)
+            if pos == 'K' or pos == 'DEF':
+                alpha, beta, loc, scale = scpy.beta.fit(data)
+                loc += 7/self.rounds
+            else:
+                alpha, beta, loc, scale = scpy.beta.fit(data)
             dist[pos] = scpy.beta(alpha, beta, loc=loc, scale=scale)
         return dist
     
     # calculates the probabilites of selecting each position given a pick number based on the adp data distribution
     def calculate_probs(self, pick):
         probs = []
-        scaled_pick = pick / (self.teams * self.rounds)
+        scaled_pick = (pick - 1) / (self.teams * self.rounds)
         for dist in self.draft_dist.values():
             prob = dist.pdf(scaled_pick)
             probs.append(prob)
-        probs = np.array(probs);
+        probs = np.array(probs)
         probs = probs / np.sum(probs)
         return probs
     

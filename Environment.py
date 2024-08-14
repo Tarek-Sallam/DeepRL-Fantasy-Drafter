@@ -18,7 +18,6 @@ class DraftEnv(Env):
         self.adp_data_path = adp_data_path
         self.totalPts = 0.0
         self.round = 1
-
         self.observation = OrderedDict(round = self.round, pick = self.draftBoard.get_agent_pick(), roster = np.zeros(9, dtype='int8'), top_projections = np.array(self.draftBoard.get_top_projections_normalized(), dtype='float32'))
 
     def step (self, action):
@@ -38,7 +37,7 @@ class DraftEnv(Env):
             self.agentRoster = pd.concat([self.agentRoster, playerFrame], ignore_index=True) ## otherwise append the player to roster
         self.draftBoard.removePlayer(action, 0) # remove the player from the available players
         self.round +=1 # increase the round of the draft
-        if self.round > self.max_rounds: 
+        if self.round > self.rounds: 
             done = True ## if we have reached the end of the draft, done is true
             if all(roster):
                 reward+=self.totalPts
