@@ -52,10 +52,11 @@ class DraftBoard():
         if not self.isReverse:
             for i in range(2*(self.teams-self.agent_pick)):
                 self.makePick()
-            self.isReverse = True;
+            self.isReverse = True
         else:
             for i in range(2*(self.agent_pick - 1)):
                 self.makePick()
+            self.isReverse = False
     
     # get the probabilites and make a choice based on those probabilites. Then increment the pick
     def makePick(self):
@@ -100,6 +101,7 @@ class DraftBoard():
     # calculates the probabilites of selecting each position given a pick number based on the adp data distribution
     def calculate_probs(self, pick):
         probs = []
+        print(pick)
         scaled_pick = (pick - 1) / (self.teams * self.rounds)
         for dist in self.draft_dist.values():
             prob = dist.pdf(scaled_pick)
