@@ -6,7 +6,7 @@ import scipy.stats as scpy
 class DraftBoard():
 
     ## constructer
-    def __init__(self, teams: int, agent_pick: int, rounds: int, projection_data_path: str, adp_data_path: str):
+    def __init__(self, teams: int, agent_pick: int, rounds: int, is_training: bool, projection_data_path: str, adp_data_path: str):
         # set all vars
         self.teams = teams
         self.rounds = rounds
@@ -15,8 +15,17 @@ class DraftBoard():
         # set the current pick and reversed order vars to defaults
         self.current_pick = 1;
         self.isReverse = False;
-        players = pd.read_csv(projection_data_path) # read the projections
-        self.draft_dist = self.get_distribution(adp_data_path) # get the distribution from the adp data
+
+        ## get the distribution from the adp data
+        self.draft_dist = self.get_distribution(adp_data_path)
+
+        ## get the projection data
+        players = pd.read_csv(projection_data_path)
+
+        ## get the projections and min-max normalize them before adding them back into the dataframe
+        proj = players['proj'].to_numpy();
+        proj = (proj - np.min(proj)) / (np.max(proj) - np.min(proj))
+        players['proj'] = proj
 
         # split the projections by player
         qb = players[players['position'] == 'QB'].reset_index(drop=True)
@@ -29,9 +38,11 @@ class DraftBoard():
         # create a players array with each position
         self.players = [qb, rb, wr, te, k, defs]
 
-        # loop until the agents pick and make picks
-        for i in range(agent_pick-1):
-            self.makePick()
+        if (is_training):
+            # loop until the agents pick and make picks
+            for i in range(agent_pick-1):
+                self.makePick()
+        
 
     ## removes a player at a given position and index from the draft board
     def removePlayer(self, position: int, index: int) -> None:
@@ -66,18 +77,15 @@ class DraftBoard():
         self.removePlayer(choice, 0)
 
     # returns a list of the projections of the top players from each position
-    def get_top_projections_normalized(self) -> list[float]:
+    def get_top_projections(self) -> list[float]:
         l = []
         for i in self.players:
             if i.empty:
                 l.append(0)
             else:
                 l.append(i.iloc[i['proj'].idxmax()]['proj'])
-        
-        l_norm = (l - np.min(l)) / (np.max(l) - np.min(l))
-        
-        return l_norm
-    
+        return l
+
     # returns the pick that the agent has in the current round
     def get_agent_pick(self):
         if not self.isReverse:
@@ -109,4 +117,3 @@ class DraftBoard():
         probs = np.array(probs)
         probs = probs / np.sum(probs)
         return probs
-    
