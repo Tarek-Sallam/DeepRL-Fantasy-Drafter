@@ -22,6 +22,7 @@ for episode in range(1, episodes + 1):
         state = env.reset()[0]
         done = False
         while not done:
+                print(state)
                 action = agent.choose_action(np.array([state]))
                 next_state, reward, _ , done , info = env.step(action) # make the step in the environment based on the action
                 agent.store_transition(state, action, reward)

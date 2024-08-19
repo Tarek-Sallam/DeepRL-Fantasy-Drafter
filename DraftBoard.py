@@ -21,22 +21,17 @@ class DraftBoard():
 
         ## get the projection data
         players = pd.read_csv(projection_data_path)
+        
 
         ## get the projections and min-max normalize them before adding them back into the dataframe
         proj = players['proj'].to_numpy();
         proj = (proj - np.min(proj)) / (np.max(proj) - np.min(proj))
-        players['proj'] = proj
+        players['proj_norm'] = proj
 
-        # split the projections by player
-        qb = players[players['position'] == 'QB'].reset_index(drop=True)
-        rb = players[players['position'] == 'RB'].reset_index(drop=True)
-        wr = players[players['position'] == 'WR'].reset_index(drop=True)
-        te = players[players['position'] == 'TE'].reset_index(drop=True)
-        k = players[players['position'] == 'K'].reset_index(drop=True)
-        defs = players[players['position'] == 'DEF'].reset_index(drop=True)
-
-        # create a players array with each position
-        self.players = [qb, rb, wr, te, k, defs]
+        ## save the players dataframe and save a list of positions
+        self.all_players = players
+        self.all_players.sort_values('proj', ascending=False).reset_index(drop=True)
+        self.positions = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF']
 
         if (is_training):
             # loop until the agents pick and make picks
@@ -46,18 +41,35 @@ class DraftBoard():
 
     ## removes a player at a given position and index from the draft board
     def removePlayer(self, position: int, index: int) -> None:
-        if not self.players[position].empty:
-            self.players[position] = self.players[position].drop(index=index).reset_index(drop=True)
+        pos_df = self.all_players[self.all_players['position'] == self.positions[position]]
+        pos_df = pos_df.sort_values('proj', ascending=False).reset_index()
+        if not pos_df.empty: 
+            drop_index = pos_df.iloc[index]['index']
+            self.all_players = self.all_players.drop(index=drop_index).reset_index(drop=True)
+
+    def removePlayerByInfo(self, player):
+        player = self.all_players.index[(self.all_players['display'] == player['display']) & (self.all_players['position'] == player['position']) & (self.all_players['proj'] == float(player['proj']))]
+        self.all_players = self.all_players.drop(index=player)
 
     ## returns a player's info at a given position and index from the draft board
     def getPlayer(self, position: int, index: int) -> pd.Series:
-        if self.players[position].empty:
-            positions = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF']
-            item = {'display': 'NULL', 'position': positions[position], 'proj': 0.0}
+        pos_df = self.all_players[self.all_players['position'] == self.positions[position]]
+        pos_df = pos_df.reset_index(drop=True)
+        if pos_df.empty:
+            item = {'display': 'NULL', 'position': self.positions[position], 'proj': 0.0}
             return pd.Series(data=item, index=item.keys())
         else:
-            return self.players[position].iloc[index].drop(['name', 'last_name', 'first_name'])
+            return pos_df.iloc[index].drop(['name', 'last_name', 'first_name'])
     
+    def getFullPlayer(self, player):
+        player = self.all_players[(self.all_players['display'] == player['display']) & (self.all_players['position'] == player['position']) & (self.all_players['proj'] == float(player['proj']))]
+        if player.empty:
+            print("Player does not exist in database")
+            item = {'name': 'NULL', 'last_name': 'NULL', 'first_name': 'NULL', 'display': 'NULL', 'position': 'NULL', 'proj': 0.0}
+            return pd.Series(data=item, index=item.keys())
+        else:
+            return player
+        
     # go to the next agent draft pick by simulating the picking whether in reversed or not reversed order
     def goToNext(self) -> None:
         if not self.isReverse:
@@ -79,11 +91,12 @@ class DraftBoard():
     # returns a list of the projections of the top players from each position
     def get_top_projections(self) -> list[float]:
         l = []
-        for i in self.players:
-            if i.empty:
+        for pos in self.positions:
+            players_pos = self.all_players[self.all_players['position'] == pos].reset_index(drop=True)
+            if players_pos.empty:
                 l.append(0)
             else:
-                l.append(i.iloc[i['proj'].idxmax()]['proj'])
+                l.append(players_pos.iloc[players_pos['proj_norm'].idxmax()]['proj_norm'])
         return l
 
     # returns the pick that the agent has in the current round
@@ -109,7 +122,6 @@ class DraftBoard():
     # calculates the probabilites of selecting each position given a pick number based on the adp data distribution
     def calculate_probs(self, pick):
         probs = []
-        print(pick)
         scaled_pick = (pick - 1) / (self.teams * self.rounds)
         for dist in self.draft_dist.values():
             prob = dist.pdf(scaled_pick)
@@ -117,3 +129,9 @@ class DraftBoard():
         probs = np.array(probs)
         probs = probs / np.sum(probs)
         return probs
+    
+    def get_players_df(self, query: str):
+        if query == '':
+            return self.all_players.drop(['name', 'first_name', 'last_name', 'proj_norm'], axis=1)
+        else:
+            return self.all_players.drop(['name', 'first_name', 'last_name', 'proj_norm'], axis=1)

@@ -95,7 +95,7 @@ class DraftEnv(Env):
     def reset(self):
 
         ## create a new draft board, with the specified info
-        self.draftBoard = DraftBoard(self.draftBoard.teams, random.randint(1, self.draftBoard.teams), self.rounds, self.projection_data_path, self.adp_data_path) # reset draft board
+        self.draftBoard = DraftBoard(self.draftBoard.teams, random.randint(1, self.draftBoard.teams), self.rounds, True, self.projection_data_path, self.adp_data_path) # reset draft board
 
         ## reset the points and round
         self.totalPts = 0.0
