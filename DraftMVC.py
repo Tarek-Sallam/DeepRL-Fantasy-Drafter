@@ -40,24 +40,27 @@ class DraftGUIView():
         self.agent_pick_label.grid(column=1, row=2)
         self.rounds_label.grid(column=1, row=3)
 
-        ## create the search label, input, and search and clear buttons and place onto draft board page
-        self.search_label = ctk.CTkLabel(self.draft_board_page, text="Search: ")
-        self.search_label.grid(row=0, column=0)
+        self.round_label = ctk.CTkLabel(self.draft_board_page, text="")
+        self.pick_label = ctk.CTkLabel(self.draft_board_page, text="")
+        self.round_label.grid(row=0, column = 2)
+        self.pick_label.grid(row=0, column = 3)
+
+        ## create the search input, and search and clear buttons and place onto draft board page
         
         self.search_input = ctk.CTkEntry(self.draft_board_page, placeholder_text="Name")
-        self.search_input.grid(row=0, column=1)
+        self.search_input.grid(row=1, column=1)
 
         self.search_button = ctk.CTkButton(self.draft_board_page, text="Search")
-        self.search_button.grid(row=0, column=2)
+        self.search_button.grid(row=1, column=2)
 
         self.clear_button = ctk.CTkButton(self.draft_board_page, text="Clear")
-        self.clear_button.grid(row=0, column=3)
+        self.clear_button.grid(row=1, column=3)
 
         self.select_player_button = ctk.CTkButton(self.draft_board_page, text="Select Player")
-        self.select_player_button.grid(row=2, column=0)
+        self.select_player_button.grid(row=1, column=4)
 
         self.player_list = ttk.Treeview(self.draft_board_page, columns=(1, 2, 3), show="headings")
-        self.player_list.grid(row=1, column = 0, columnspan=4)
+        self.player_list.grid(row=2, column = 0, columnspan=5)
         self.player_list.heading(1, text="Name")
         self.player_list.heading(2, text="Position")
         self.player_list.heading(3, text="Projected")
@@ -103,19 +106,31 @@ class DraftGUIView():
 
 class DraftGUIModel():
     def __init__(self):
-        pass
+        self.current_pick = 1;
+        self.current_round = 1;
 
     def create_draft_board(self, teams, agent_pick, rounds, projection_data, adp_data, keras_model):
+        self.teams = teams
+        self.agent_pick = agent_pick
+        self.rounds=rounds
         self.draftboard = DraftBoard(teams=teams,agent_pick=agent_pick,rounds=rounds,is_training=False,
                                      projection_data_path=projection_data, adp_data_path=adp_data)
         self.keras_model = PolicyGradientAgent(epsilon=0)
         self.keras_model.load_model(keras_model)
         self.players_df = self.draftboard.get_players_df('')
+        self.roster = [0] * 9
 
     def remove_player(self, player):
         full_player = self.draftboard.getFullPlayer(player)
         self.draftboard.removePlayerByInfo(player)
         self.players_df = self.draftboard.get_players_df('')
+        self.increment_pick()
+
+    def increment_pick(self):
+        self.current_pick +=1
+        if (self.current_pick > self.teams):
+            self.current_pick = 1
+            self.current_round += 1
 
 class DraftGUIController():
     def __init__(self, model, view, projection_data, adp_data, keras_model):
@@ -152,19 +167,46 @@ class DraftGUIController():
                 self.switch_to_draft_view()
     
     def search_button(self):
-        query = self.view.get_search_input().strip()
-
+        query = self.view.get_search_input().strip().upper().replace(' ', '')
+        self.view.clear_search_input()
+        self.model.players_df = self.model.draftboard.get_players_df(query)
+        for i in self.view.player_list.get_children():
+            self.view.player_list.delete(i)
+        for player in self.model.players_df.to_numpy().tolist():
+            self.view.player_list.insert('', ctk.END, values=player)
+        
     def clear_button(self):
         self.view.clear_search_input()
+        self.model.players_df = self.model.draftboard.get_players_df('')
+        for i in self.view.player_list.get_children():
+            self.view.player_list.delete(i)
+
+        for player in self.model.players_df.to_numpy().tolist():
+            self.view.player_list.insert('', ctk.END, values=player)
         
     def make_selection(self):
         id = self.view.get_selected_player_id()
-        player = self.view.get_player_info(id)
-        self.model.remove_player(player)
-        self.view.player_list.delete(id)
-        print(self.model.players_df)
+        if (not id == ''):
+            player = self.view.get_player_info(id)
+            self.model.remove_player(player)
+            self.view.player_list.delete(id)
+            self.view.round_label.configure(text="Round: " + str(self.model.current_round))
+            self.view.pick_label.configure(text="Pick: " + str(self.model.current_pick))
+            if self.model.current_round % 2 == 1 and self.model.current_pick == self.model.agent_pick:
+                self.agent_pick()
+            elif self.model.current_round % 2 == 0 and self.model.current_pick == self.model.teams - self.model.agent_pick + 1:
+                self.agent_pick()
+        
+        
+
+    def agent_pick(self):
+        print('agent picks: ')
 
     def switch_to_draft_view(self):
         self.view.switch_to_draft_view()
         for player in self.model.players_df.to_numpy().tolist():
             self.view.player_list.insert('', ctk.END, values=player)
+        self.view.round_label.configure(text="Round: " + str(self.model.current_round))
+        self.view.pick_label.configure(text="Pick: " + str(self.model.current_pick))
+        if self.model.agent_pick == 1:
+            self.agent_pick()

@@ -134,4 +134,5 @@ class DraftBoard():
         if query == '':
             return self.all_players.drop(['name', 'first_name', 'last_name', 'proj_norm'], axis=1)
         else:
-            return self.all_players.drop(['name', 'first_name', 'last_name', 'proj_norm'], axis=1)
+            filtered = self.all_players[self.all_players['display'].str.upper().str.replace(' ', '').str.contains(query)]
+            return filtered.drop(['name', 'first_name', 'last_name', 'proj_norm'], axis=1)
