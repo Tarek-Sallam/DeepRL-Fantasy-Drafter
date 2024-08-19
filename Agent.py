@@ -118,4 +118,4 @@ class PolicyGradientAgent():
     
     ## load the model
     def load_model(self, path):
-        self.policy.load_model(path)
+        self.policy = tf.keras.models.load_model(path)

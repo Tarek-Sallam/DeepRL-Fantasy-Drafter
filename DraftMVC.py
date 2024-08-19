@@ -9,18 +9,37 @@ class DraftGUIView():
         self.width = width
         self.height = height
         root.title("Draft Board")
+
+        ## create the menu page frame and display on the root
         self.menu_page = ctk.CTkFrame(root, width=width, height=height, fg_color="transparent")
-        self.menu_page.grid(row=0, column=0)
+        self.menu_page.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
+        self.menu_page.columnconfigure(list(range(4)), minsize=width/4)
+        self.menu_page.rowconfigure(list(range(5)), minsize=height/5)
+
+        ## create the draft board page and do not display on the root
         self.draft_board_page = ctk.CTkFrame(root, width=width, height=height, fg_color="transparent")
 
+        ## create the buttons and display onto the menu page
         self.create_draft_button = ctk.CTkButton(self.menu_page, text="Create Draft", width=0.1*width, height=0.05*width)
-        self.create_draft_button.pack(pady=10)
-        self.teams_input = ctk.CTkEntry(self.menu_page, placeholder_text="", width=0.05*width, height=0.05*width)
-        self.agent_pick_input = ctk.CTkEntry(self.menu_page, placeholder_text="", width=0.05*width, height=0.05*width)
-        self.rounds_input = ctk.CTkEntry(self.menu_page, placeholder_text="", width=0.05*width, height=0.05*width)
-        self.teams_input.pack(pady=10)
-        self.agent_pick_input.pack(pady=10)
-        self.rounds_input.pack(pady=10)
+        self.create_draft_button.grid(column=2, row=4)
+
+        ## create the inputs and display onto the menu page
+        self.teams_input = ctk.CTkEntry(self.menu_page, justify="center", placeholder_text="", width=0.05*width, height=0.05*width)
+        self.agent_pick_input = ctk.CTkEntry(self.menu_page, justify="center", placeholder_text="", width=0.05*width, height=0.05*width)
+        self.rounds_input = ctk.CTkEntry(self.menu_page, justify="center", placeholder_text="", width=0.05*width, height=0.05*width)
+        self.teams_input.grid(column=2, row=1)
+        self.agent_pick_input.grid(column=2, row=2)
+        self.rounds_input.grid(column=2, row=3)
+
+        ## create the labels and display onto the menu page
+        self.teams_label = ctk.CTkLabel(self.menu_page, text="Number of Teams: ")
+        self.agent_pick_label = ctk.CTkLabel(self.menu_page, text="Agent's Pick: ")
+        self.rounds_label = ctk.CTkLabel(self.menu_page, text="Number of Rounds: ")
+        self.teams_label.grid(column=1, row=1)
+        self.agent_pick_label.grid(column=1, row=2)
+        self.rounds_label.grid(column=1, row=3)
+
+        
         
     def bind_create_draft_button(self, command):
         self.create_draft_button.configure(command=command)
@@ -41,7 +60,7 @@ class DraftGUIView():
 
     def switch_to_draft_view(self):
         self.menu_page.grid_forget()
-        self.draft_board_page.grid(row=0, column=0)
+        self.draft_board_page.place(relx=0.5, rely=0.5, anchor=ctk.CENTER)
 
 class DraftGUIModel():
     def __init__(self):
