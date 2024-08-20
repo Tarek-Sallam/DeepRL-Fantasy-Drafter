@@ -243,9 +243,9 @@ class DraftGUIModel():
             self.draftboard.undo(last_player)
             if self.is_agent_pick():
                 roster_slot = self.roster_history.pop()
-                if (roster_slot != -1) {
+                if roster_slot != -1:
                     self.roster[roster_slot] = 0
-                }
+
             self.players_df = self.draftboard.get_players_df('')
 
     ## checks if it is currently the agents pick (given the snake draft)
