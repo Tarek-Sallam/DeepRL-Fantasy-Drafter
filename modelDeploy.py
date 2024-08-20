@@ -3,8 +3,8 @@ import customtkinter as ctk
 import os
 
 root = ctk.CTk()
-width = 800
-height = 600
+width = 1200
+height = 800
 root.geometry(str(width) + "x" + str(height))
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")

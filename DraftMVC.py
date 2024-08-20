@@ -213,7 +213,7 @@ class DraftGUIModel():
             self.decrement_pick()
             last_player = self.history.pop()
             self.draftboard.undo(last_player)
-            if self.is_agent_pick:
+            if self.is_agent_pick():
                 self.roster[self.roster_history.pop()] = 0
             self.players_df = self.draftboard.get_players_df('')
 
@@ -287,6 +287,7 @@ class DraftGUIController():
             player = self.view.get_player_info(id)
             if self.model.is_agent_pick():
                 self.model.addToRoster(positions.index(player['position']))
+                
             self.model.remove_player(player)
             self.view.player_list.delete(id)
             self.update_labels()
