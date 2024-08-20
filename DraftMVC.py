@@ -205,8 +205,6 @@ class DraftGUIModel():
         print("State is: ")
         print(state)
         actionProbs = self.agent.predict(np.array([state]))[0]
-        print("Action probs: ")
-        print(actionProbs)
         action = np.argmax(actionProbs)
         print(self.draftboard.getPlayer(action, 0))
 
