@@ -21,7 +21,7 @@ Project Files:
         environment and agent, and has an iteration loop to train the agent
 
     DraftMVC.py: model, view, and controller classes to display a 
-        GUI for actually deploying the draft agent. This GUI allows for the initiation of a draft and the search and removal of players (for the other teams), as well as the picking from the agent 
+        GUI for actually deploying the draft agent. This GUI allows for the initiation of a draft and the search and removal of players (for the other teams), as well as updating state for the agent, and the agent picking players
 
     modelDeploy.py: main for deploying the model. Initiates the 
         MVC classes and sets up a root to display the GUI. For deploying the model for an actual NFL Fantasy Draft 
