@@ -11,6 +11,7 @@ from Environment import DraftEnv
 env = DraftEnv(12, 19, os.path.join(os.getcwd(), 'data', 'projection_data.csv'), os.path.join(os.getcwd(), 'data', 'adp_data.npy'))
 env = FlattenObservation(env)
 n_inputs = env.observation_space.shape[0] ## get the shape
+print(env.observation_space.shape)
 n_actions = env.action_space.n
 init_epsilon = 0.8
 final_epsilon = 0.2

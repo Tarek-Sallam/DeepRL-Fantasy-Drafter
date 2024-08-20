@@ -66,7 +66,7 @@ class DraftBoard():
         if player.empty:
             print("Player does not exist in database")
             item = {'name': 'NULL', 'last_name': 'NULL', 'first_name': 'NULL', 'display': 'NULL', 'position': 'NULL', 'proj': 0.0}
-            return pd.Series(data=item, index=item.keys())
+            return pd.DataFrame(item)
         else:
             return player
         
@@ -136,3 +136,6 @@ class DraftBoard():
         else:
             filtered = self.all_players[self.all_players['display'].str.upper().str.replace(' ', '').str.contains(query)]
             return filtered.drop(['name', 'first_name', 'last_name', 'proj_norm'], axis=1)
+        
+    def undo(self, player):
+        self.all_players = pd.concat([self.all_players, player], ignore_index=True).sort_values('proj', ascending=False).reset_index(drop=True)
