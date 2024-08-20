@@ -5,12 +5,15 @@ import numpy as np
 import customtkinter as ctk
 from tkinter import ttk
 
+## The View portion of the Model View Controller
 class DraftGUIView():
+
+    ## init all the stuff that goes on the pages
     def __init__(self, root, width, height):
-        self.root = root
-        self.width = width
-        self.height = height
-        root.title("Draft Board")
+        self.root = root ## set the root
+        self.width = width ## set the width
+        self.height = height ## set the height
+        root.title("Draft Board") ## set the title of the window
 
         ## create the menu page frame and display on the root
         self.menu_page = ctk.CTkFrame(root, width=width, height=height, fg_color="transparent")
@@ -46,6 +49,7 @@ class DraftGUIView():
         self.agent_pick_label.grid(column=1, row=2)
         self.rounds_label.grid(column=1, row=3)
 
+        ## creates the labels for the draft board page and places onto the page
         self.round_label = ctk.CTkLabel(self.draft_board_page, text="", width = width/6, height = height / 18)
         self.pick_label = ctk.CTkLabel(self.draft_board_page, text="", width = width/6, height = height / 18)
         self.agent_pick_label = ctk.CTkLabel(self.draft_board_page, text="", width=width/6, height = height / 18)
@@ -53,8 +57,8 @@ class DraftGUIView():
         self.pick_label.grid(row=0, column = 2)
         self.agent_pick_label.grid(row=0, column = 3)
 
-        ## create the search input, and search and clear buttons and place onto draft board page
-        
+        ## creates the search input, search button, clear button, select player button and 
+            # calculate player buttons and places them onto the page
         self.search_input = ctk.CTkEntry(self.draft_board_page, placeholder_text="Name", width = 2 * width / 6, height = height / 18)
         self.search_input.grid(row=1, column=1, columnspan=2)
 
@@ -73,30 +77,21 @@ class DraftGUIView():
         self.undo_button = ctk.CTkButton(self.draft_board_page, text="Undo", width = width/6, height = height / 18)
         self.undo_button.grid(row=3, column = 2)
 
+        ## create a ttk style and configre the treeviews to have a certain row height
         s=ttk.Style()
         s.configure('Treeview', rowheight=(2 * height / 3) / 20)
-        self.player_list = ttk.Treeview(self.draft_board_page, columns=(1, 2, 3), show="headings", height=15)
 
+        ## create the treeview to display the players, add the headings, and place onto the draft board page
+        self.player_list = ttk.Treeview(self.draft_board_page, columns=(1, 2, 3), show="headings", height=15)
         self.player_list.grid(row=2, column = 1, columnspan=4)
         self.player_list.heading(1, text="Name")
         self.player_list.heading(2, text="Position")
         self.player_list.heading(3, text="Projected")
 
+    ## binders for the buttons
     def bind_create_draft_button(self, command):
         self.create_draft_button.configure(command=command)
     
-    def get_teams_input(self):
-        return self.teams_input.get()
-    
-    def get_agent_pick_input(self):
-        return self.agent_pick_input.get()
-    
-    def get_rounds_input(self):
-        return self.rounds_input.get()
-
-    def bind_search_button(self, command):
-        self.search_button.configure(command=command)
-
     def bind_clear_button(self, command):
         self.clear_button.configure(command=command)
 
@@ -108,31 +103,54 @@ class DraftGUIView():
 
     def bind_undo_button(self, command):
         self.undo_button.configure(command=command)
-    def clear_search_input(self):
-        self.search_input.delete(0, ctk.END)
 
+    def bind_search_button(self, command):
+        self.search_button.configure(command=command)
+
+    ## getters for the inputs 
+    def get_teams_input(self):
+        return self.teams_input.get()
+    
+    def get_agent_pick_input(self):
+        return self.agent_pick_input.get()
+    
+    def get_rounds_input(self):
+        return self.rounds_input.get()
+    
     def get_search_input(self):
         return self.search_input.get()
+
+    ## clears the search input
+    def clear_search_input(self):
+        self.search_input.delete(0, ctk.END)
     
+    ## gets the selected players id in the tree view
     def get_selected_player_id(self):
         return self.player_list.focus()
     
+    ## gets a players information from the treeview given an id
     def get_player_info(self, player_id):
         player = self.player_list.item(player_id)['values']
         player = {'display': player[0], 'position': player[1], 'proj': player[2]}
         return player
     
+    ## function that removes the menu page and adds the draft board page onto the root
     def switch_to_draft_view(self):
         self.menu_page.destroy()
         self.draft_board_page.place(relx=0.5, rely=0.5, anchor=ctk.CENTER) ## place the draft board page
 
+## Model portion of the MVC
 class DraftGUIModel():
+
     def __init__(self):
-        self.current_pick = 1;
-        self.current_round = 1;
-        self.history = []
+        self.current_pick = 1 ## set the current pick
+        self.current_round = 1 ## set the current round
+
+        ## histories in case of undoing
+        self.history = [] 
         self.roster_history = []
 
+    ## creates the draft board class, loads the queried df, and creates the roster (for the state)
     def create_draft_board(self, teams, agent_pick, rounds, projection_data, adp_data, keras_model):
         self.teams = teams
         self.rounds = rounds
@@ -143,6 +161,7 @@ class DraftGUIModel():
         self.players_df = self.draftboard.get_players_df('')
         self.roster = [0] * 9
 
+    ## removes a player from the draftboard adds them to the history, and increments the pick
     def remove_player(self, player):
         full_player = self.draftboard.getFullPlayer(player)
         self.draftboard.removePlayerByInfo(player)
@@ -150,12 +169,14 @@ class DraftGUIModel():
         self.increment_pick()
         self.history.append(full_player)
 
+    ## increments the pick (or round)
     def increment_pick(self):
         self.current_pick +=1
         if (self.current_pick > self.teams):
             self.current_pick = 1
             self.current_round += 1
 
+    ## decrements the pick (or round)
     def decrement_pick(self):
         if self.current_round == 1 and self.current_pick == 1:
             return
@@ -189,15 +210,20 @@ class DraftGUIModel():
             elif roster[8] == 0:
                 roster[8] = 1
                 self.roster_history.append(8)
+            else:
+                self.roster_history.append(-1)
         
         ## otherwise for QB, TE, K, DEF, check if the spot has been filled, if it has fill it, and append the position to the list
         else:
             if roster[position] == 0:
                 roster[position] = 1
                 self.roster_history.append(position)
-                
+            else:
+                self.roster_history.append(-1)
+            
         self.roster = roster
             
+    ## make the pick based on the keras model's calculations
     def make_pick(self):
         state = []
         state.extend(self.roster)
@@ -208,15 +234,21 @@ class DraftGUIModel():
         action = np.argmax(actionProbs)
         print(self.draftboard.getPlayer(action, 0))
 
+    ## removes the player from the history, and adds them back into the draftboard and decrements the pick
+    ## also removes the player from the agent's roster in case it was their pick to revert the state
     def undo(self):
         if not (self.current_pick == 1 and self.current_round == 1):
             self.decrement_pick()
             last_player = self.history.pop()
             self.draftboard.undo(last_player)
             if self.is_agent_pick():
-                self.roster[self.roster_history.pop()] = 0
+                roster_slot = self.roster_history.pop()
+                if (roster_slot != -1) {
+                    self.roster[roster_slot] = 0
+                }
             self.players_df = self.draftboard.get_players_df('')
 
+    ## checks if it is currently the agents pick (given the snake draft)
     def is_agent_pick(self):
         if self.current_round % 2 == 1 and self.agent_pick == self.current_pick:
                 return True
@@ -225,8 +257,10 @@ class DraftGUIModel():
         else:
             return False
 
-
+## controller portion of the MVC
 class DraftGUIController():
+
+    # set the attributes and bind the functions
     def __init__(self, model, view, projection_data, adp_data, keras_model):
         self.model = model
         self.view = view
@@ -240,11 +274,15 @@ class DraftGUIController():
         view.bind_calculate_player_button(command=self.agent_pick)
         view.bind_undo_button(command=self.undo)
 
+    ## function that creates the draft board portion of the view and the corresponding portion of the model
     def create_draft_board(self):
+
+        ## get the inputs
         teams = self.view.get_teams_input()
         agent_pick = self.view.get_agent_pick_input()
         rounds = self.view.get_rounds_input()
         
+        ## if there are any errors print them, else create the draft board and switch the view
         try:
             teams = int(teams)
             agent_pick = int(agent_pick)
@@ -262,6 +300,8 @@ class DraftGUIController():
                 self.model.create_draft_board(teams, agent_pick, rounds, self.projection_data, self.adp_data, self.keras_model)
                 self.switch_to_draft_view()
     
+    ## get the query, clear the search input, get the updated query dataframe
+    ## delete all children of the tree view and add the dataframe into the tree view
     def search_button(self):
         query = self.view.get_search_input().strip().upper().replace(' ', '')
         self.view.clear_search_input()
@@ -271,6 +311,8 @@ class DraftGUIController():
         for player in self.model.players_df.to_numpy().tolist():
             self.view.player_list.insert('', ctk.END, values=player)
         
+    ## clears the query. then deletes the children of the tree view and adds all the players back
+    ## into the treeview
     def clear_button(self):
         self.view.clear_search_input()
         self.model.players_df = self.model.draftboard.get_players_df('')
@@ -280,6 +322,8 @@ class DraftGUIController():
         for player in self.model.players_df.to_numpy().tolist():
             self.view.player_list.insert('', ctk.END, values=player)
         
+    ## get the selected player, if it is currently the agent's pick update the state
+    ## then remove the player from the treeview and from the model. Update the labels
     def make_selection(self):
         id = self.view.get_selected_player_id()
         positions = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF']
@@ -292,14 +336,17 @@ class DraftGUIController():
             self.view.player_list.delete(id)
             self.update_labels()
         
+    ## calculate pick button handler, call the models calculation to print it out
     def agent_pick(self):
         self.model.make_pick()
         
+    ## undo button handler, call undo on the model, clear the query, update the labels
     def undo(self):
         self.model.undo()
         self.clear_button()
         self.update_labels()
 
+    ## updates the round, pick and is agent pick labels corresponding to the models state
     def update_labels(self):
         self.view.round_label.configure(text="Round: " + str(self.model.current_round))
         self.view.pick_label.configure(text="Pick: " + str(self.model.current_pick))
@@ -308,6 +355,7 @@ class DraftGUIController():
         else:
             self.view.agent_pick_label.configure(text="Not Agent's Pick")
 
+    ## switches from the first page to the draft board page by switching the view, and updating the model
     def switch_to_draft_view(self):
         self.view.switch_to_draft_view()
         for player in self.model.players_df.to_numpy().tolist():

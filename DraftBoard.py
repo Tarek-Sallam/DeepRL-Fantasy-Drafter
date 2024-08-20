@@ -47,6 +47,7 @@ class DraftBoard():
             drop_index = pos_df.iloc[index]['index']
             self.all_players = self.all_players.drop(index=drop_index).reset_index(drop=True)
 
+    ## removes a player by their information
     def removePlayerByInfo(self, player):
         player = self.all_players.index[(self.all_players['display'] == player['display']) & (self.all_players['position'] == player['position']) & (self.all_players['proj'] == float(player['proj']))]
         self.all_players = self.all_players.drop(index=player)
@@ -61,6 +62,7 @@ class DraftBoard():
         else:
             return pos_df.iloc[index].drop(['name', 'last_name', 'first_name'])
     
+    ## returns a complete list of the players information given some of the players info
     def getFullPlayer(self, player):
         player = self.all_players[(self.all_players['display'] == player['display']) & (self.all_players['position'] == player['position']) & (self.all_players['proj'] == float(player['proj']))]
         if player.empty:
@@ -130,6 +132,7 @@ class DraftBoard():
         probs = probs / np.sum(probs)
         return probs
     
+    # gets all players matching a query into a dataframe
     def get_players_df(self, query: str):
         if query == '':
             return self.all_players.drop(['name', 'first_name', 'last_name', 'proj_norm'], axis=1)
@@ -137,5 +140,6 @@ class DraftBoard():
             filtered = self.all_players[self.all_players['display'].str.upper().str.replace(' ', '').str.contains(query)]
             return filtered.drop(['name', 'first_name', 'last_name', 'proj_norm'], axis=1)
         
+    # adds the player back into the draftboard (ONLY FOR LIVE DRAFTING NOT TRAINING)
     def undo(self, player):
         self.all_players = pd.concat([self.all_players, player], ignore_index=True).sort_values('proj', ascending=False).reset_index(drop=True)
