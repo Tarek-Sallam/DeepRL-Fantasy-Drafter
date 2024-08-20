@@ -10,7 +10,7 @@ from Environment import DraftEnv
 
 env = DraftEnv(
         12, 
-        19, 
+        15, 
         os.path.join(os.getcwd(), 'data', 'projection_data.csv'), 
         os.path.join(os.getcwd(), 'data', 'adp_data.npy')
 )
@@ -19,66 +19,92 @@ env = FlattenObservation(env)
 n_inputs = env.observation_space.shape[0] ## get the shape
 print(env.observation_space.shape)
 n_actions = env.action_space.n
-init_epsilon = 0.6
-final_epsilon = 0.05
+count = 0;
 
-agent = PolicyGradientAgent(
-        learning_rate=0.001, 
-        discount_factor=1, n_actions = 
-        n_actions, epsilon=init_epsilon, 
-        n_inputs=n_inputs, 
-        n_layers=2, 
-        layer_size=[10] * 4
-)
+init_epsilons = [1.0, 0.8, 0.6, 0.5]
+final_epsilons = [0.3, 0.2, 0.1, 0.05]
+layers = [2, 4, 6]
+layer_sizes = [8, 10, 20, 32, 64]
+discount_factors = [0.99, 1]
+learning_rates = [0.01, 0.001, 0.05, 0.005]
 
-episodes = 1000
-rewards_per_episode = []
-epsilon_values = []
+for init_epsilon in init_epsilons:
+        for final_epsilon in final_epsilons:
+                for layers_num in layers:
+                        for layer_size in layer_sizes:
+                                for discount_factor in discount_factors:
+                                        for learning_rate in learning_rates:
+                                                agent = PolicyGradientAgent(
+                                                        learning_rate=learning_rate, 
+                                                        discount_factor=discount_factor, n_actions = 
+                                                        n_actions, epsilon=init_epsilon, 
+                                                        n_inputs=n_inputs, 
+                                                        n_layers=layers_num, 
+                                                        layer_size=[layer_size] * layers_num
+                                                )                                       
 
-for episode in range(1, episodes + 1):
-        state = env.reset()[0]
-        done = False
-        total_reward = 0
-        agent.set_epsilon(init_epsilon - ((episode - 1) / (episodes - 1)) * (init_epsilon - final_epsilon))
-        while not done:
-                print(state)
-                action = agent.choose_action(np.array([state]))
-                next_state, reward, _ , done , info = env.step(action) # make the step in the environment based on the action
-                agent.store_transition(state, action, reward)
-                total_reward+=reward
-                state = next_state # move to next state
+                                                episodes = 10
+                                                rewards_per_episode = []
+                                                epsilon_values = []
 
-        print('Episode {} finished.'.format(episode))
-        agent.learn()
-        rewards_per_episode.append(total_reward)
-        epsilon_values.append(agent.epsilon)
-        agent.save_model(os.path.join(os.getcwd(), 'keras', 'fantasyDrafter.keras'))
-        env.agentRoster.to_csv(os.path.join(os.getcwd(), 'trainingRosters', 'iteration_' + str(episode) + '_roster.csv'), index=False)
-        
-# Create the figure and axis
-fig, ax1 = plt.subplots(figsize=(10, 6))
+                                                for episode in range(1, episodes + 1):
+                                                        state = env.reset()[0]
+                                                        done = False
+                                                        total_reward = 0
+                                                        agent.set_epsilon(init_epsilon - ((episode - 1) / (episodes - 1)) * (init_epsilon - final_epsilon))
+                                                        while not done:
+                                                                action = agent.choose_action(np.array([state]))
+                                                                next_state, reward, _ , done , info = env.step(action) # make the step in the environment based on the action
+                                                                agent.store_transition(state, action, reward)
+                                                                total_reward+=reward
+                                                                state = next_state # move to next state
 
-# Plot rewards on the primary y-axis
-ax1.plot(rewards_per_episode, label='Total Reward', color='blue')
-ax1.set_xlabel('Episode')
-ax1.set_ylabel('Total Reward', color='blue')
-ax1.tick_params(axis='y', labelcolor='blue')
+                                                        print('Episode {} finished.'.format(episode))
+                                                        agent.learn()
+                                                        rewards_per_episode.append(total_reward)
+                                                        epsilon_values.append(agent.epsilon)
+                                                        agent.save_model(os.path.join(os.getcwd(), 'keras', 'fantasyDrafter.keras'))
+                                                        env.agentRoster.to_csv(os.path.join(os.getcwd(), 'trainingRosters', 'iteration_' + str(episode) + '_roster.csv'), index=False)
+                                                        
+                                               # Create the figure and axis
+                                                fig, ax1 = plt.subplots(figsize=(10, 6))
 
-# Create a secondary y-axis to plot epsilon
-ax2 = ax1.twinx()  # Instantiate a second axes that shares the same x-axis
-ax2.plot(range(episodes), epsilon_values, label='Epsilon', color='orange', linestyle='--')
-ax2.set_ylabel('Epsilon', color='orange')
-ax2.tick_params(axis='y', labelcolor='orange')
+                                                # Plot rewards on the primary y-axis
+                                                ax1.plot(rewards_per_episode, label='Total Reward', color='blue')
+                                                ax1.set_xlabel('Episode')
+                                                ax1.set_ylabel('Total Reward', color='blue')
+                                                ax1.tick_params(axis='y', labelcolor='blue')
 
-# Add a combined legend
-fig.legend(loc="upper right", bbox_to_anchor=(1, 1), bbox_transform=ax1.transAxes)
+                                                # Create a secondary y-axis to plot epsilon
+                                                ax2 = ax1.twinx()  # Instantiate a second axes that shares the same x-axis
+                                                ax2.plot(range(episodes), epsilon_values, label='Epsilon', color='orange', linestyle='--')
+                                                ax2.set_ylabel('Epsilon', color='orange')
+                                                ax2.tick_params(axis='y', labelcolor='orange')
 
-# Add title and grid
-plt.title('Total Reward and Epsilon Decay Over Episodes')
-plt.grid(True)
+                                                # Add a combined legend
+                                                fig.legend(loc="upper right", bbox_to_anchor=(1, 1), bbox_transform=ax1.transAxes)
 
-# Save the plot to a file
-plt.savefig(os.path.join(os.getcwd(), 'plots', '2_10_l_06_005_e_1000_ep.png'))
+                                                # Add title and grid
+                                                plt.title('Total Reward and Epsilon Decay Over Episodes')
+                                                plt.grid(True)
+                                                
+                                                plt.subplots_adjust(right=0.75)
+                                                
+                                                # Add a text box with the hyperparameters
+                                                hyperparameters_text = (
+                                                "Hyperparameters:\n"
+                                                f"Learning Rate: 0.001\n"
+                                                f"Discount Factor: 1.0\n"
+                                                f"Initial Epsilon: {init_epsilon}\n"
+                                                f"Final Epsilon: {final_epsilon}\n"
+                                                f"Episodes: {episodes}\n"
+                                                "Layer Sizes: [10, 10, 10, 10]"
+                                                )
 
-# Show the plot
-plt.show()
+                                                # Add the text box on the plot
+                                                plt.text(1.02, 0.5, hyperparameters_text, transform=ax1.transAxes, fontsize=10,
+                                                        verticalalignment='center', bbox=dict(boxstyle="round,pad=0.3", edgecolor='black', facecolor='lightgrey'))
+
+                                                # Save the plot to a file
+                                                plt.savefig(os.path.join(os.getcwd(), 'plots', f"{count}.png"))
+                                                count+=1
