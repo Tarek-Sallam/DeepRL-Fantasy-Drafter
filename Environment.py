@@ -40,13 +40,12 @@ class DraftEnv(Env):
 
         ## Add the player to the roster and return the modified roster as well as the list of player info
         roster, playerInfo = self.addToRoster(action)
-
         ## if the player's position is kicker or defense and we are in the first 16 rounds, then reward is 0
-        if playerInfo[3] == 'K' or playerInfo[3] == 'DEF' and self.round <= 16:
+        if playerInfo[4] == 'K' or playerInfo[4] == 'DEF' and self.round <= 16:
             reward = 0
 
         ## if the player wasn't selected as a sub, then the reward is the points of that player
-        elif playerInfo[3] != 'SUB':
+        elif playerInfo[4] != 'SUB':
             reward = topPoints[action]
 
         ## if the player is a sub the reward is 0
@@ -57,7 +56,7 @@ class DraftEnv(Env):
         self.totalPts += reward
 
         ## create a dataframe of the player, and concatenate it to the roster list
-        playerFrame = pd.DataFrame({"display": [playerInfo[0]], "position": [playerInfo[1]], "proj": [playerInfo[2]], 'slot': [playerInfo[3]]})
+        playerFrame = pd.DataFrame({"display": [playerInfo[0]], "position": [playerInfo[1]], "proj": [playerInfo[2]], "proj_norm": [playerInfo[3]], 'slot': [playerInfo[4]]})
         if self.round == 1:
             self.agentRoster = playerFrame ## make the roster just the player if first round
         else:
@@ -112,10 +111,8 @@ class DraftEnv(Env):
 
         ## get a copy of the roster
         roster = self.observation["roster"].copy()
-
         ## get a list of the player information
         player = self.draftBoard.getPlayer(position, 0).to_list()
-
         ## if it is a RB or WR
         if position == 1 or position == 2:
 

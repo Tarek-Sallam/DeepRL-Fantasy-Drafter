@@ -57,7 +57,7 @@ class DraftBoard():
         pos_df = self.all_players[self.all_players['position'] == self.positions[position]]
         pos_df = pos_df.reset_index(drop=True)
         if pos_df.empty:
-            item = {'display': 'NULL', 'position': self.positions[position], 'proj': 0.0}
+            item = {'display': 'NULL', 'position': self.positions[position], 'proj': 0.0, 'proj_norm': 'NULL'}
             return pd.Series(data=item, index=item.keys())
         else:
             return pos_df.iloc[index].drop(['name', 'last_name', 'first_name'])

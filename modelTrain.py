@@ -43,7 +43,7 @@ for init_epsilon in init_epsilons:
                                                         layer_size=[layer_size] * layers_num
                                                 )                                       
 
-                                                episodes = 2
+                                                episodes = 300
                                                 rewards_per_episode = []
                                                 epsilon_values = []
 
