@@ -19,12 +19,12 @@ env = FlattenObservation(env)
 n_inputs = env.observation_space.shape[0] ## get the shape
 print(env.observation_space.shape)
 n_actions = env.action_space.n
-count = 0;
+count = 0
 
-init_epsilons = [1.0, 0.8, 0.6, 0.5]
-final_epsilons = [0.3, 0.2, 0.1, 0.05]
+init_epsilons = [0.8]
+final_epsilons = [0.2]
 layers = [2, 4, 6]
-layer_sizes = [8, 10, 20, 32, 64]
+layer_sizes = [8, 10, 24]
 discount_factors = [0.99, 1]
 learning_rates = [0.01, 0.001, 0.05, 0.005]
 
@@ -43,7 +43,7 @@ for init_epsilon in init_epsilons:
                                                         layer_size=[layer_size] * layers_num
                                                 )                                       
 
-                                                episodes = 5
+                                                episodes = 2
                                                 rewards_per_episode = []
                                                 epsilon_values = []
 
@@ -95,7 +95,7 @@ for init_epsilon in init_epsilons:
                                                         "Hyperparameters:\n"
                                                         f"Episodes: {episodes}\n"
                                                         f"Hidden Layers: {layers_num}\n"
-                                                        f"Layer Height: {layer_size}"
+                                                        f"Layer Height: {layer_size}\n"
                                                         f"Learning Rate: {learning_rate}\n"
                                                         f"Discount Factor: {discount_factor}\n"
                                                         f"Initial Epsilon: {init_epsilon}\n"
