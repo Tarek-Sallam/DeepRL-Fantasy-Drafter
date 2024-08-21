@@ -43,7 +43,7 @@ for init_epsilon in init_epsilons:
                                                         layer_size=[layer_size] * layers_num
                                                 )                                       
 
-                                                episodes = 10
+                                                episodes = 5
                                                 rewards_per_episode = []
                                                 epsilon_values = []
 
@@ -89,16 +89,17 @@ for init_epsilon in init_epsilons:
                                                 plt.grid(True)
                                                 
                                                 plt.subplots_adjust(right=0.75)
-                                                
+
                                                 # Add a text box with the hyperparameters
                                                 hyperparameters_text = (
-                                                "Hyperparameters:\n"
-                                                f"Learning Rate: 0.001\n"
-                                                f"Discount Factor: 1.0\n"
-                                                f"Initial Epsilon: {init_epsilon}\n"
-                                                f"Final Epsilon: {final_epsilon}\n"
-                                                f"Episodes: {episodes}\n"
-                                                "Layer Sizes: [10, 10, 10, 10]"
+                                                        "Hyperparameters:\n"
+                                                        f"Episodes: {episodes}\n"
+                                                        f"Hidden Layers: {layers_num}\n"
+                                                        f"Layer Height: {layer_size}"
+                                                        f"Learning Rate: {learning_rate}\n"
+                                                        f"Discount Factor: {discount_factor}\n"
+                                                        f"Initial Epsilon: {init_epsilon}\n"
+                                                        f"Final Epsilon: {final_epsilon}\n"
                                                 )
 
                                                 # Add the text box on the plot
