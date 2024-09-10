@@ -100,6 +100,16 @@ class DraftBoard():
             else:
                 l.append(players_pos.iloc[players_pos['proj_norm'].idxmax()]['proj_norm'])
         return l
+    
+    def get_top_projections_raw(self) -> list[float]:
+        l = []
+        for pos in self.positions:
+            players_pos = self.all_players[self.all_players['position'] == pos].reset_index(drop=True)
+            if players_pos.empty:
+                l.append(0)
+            else:
+                l.append(players_pos.iloc[players_pos['proj_norm'].idxmax()]['proj'])
+        return l
 
     # returns the pick that the agent has in the current round
     def get_agent_pick(self):

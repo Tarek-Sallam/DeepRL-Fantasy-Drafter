@@ -18,6 +18,7 @@ class DraftEnv(Env):
         self.rounds = rounds
         self.totalPts = 0.0
         self.round = 1
+        self.isComplete = False
 
         ## action space and observation space:
             # Actions: SELECTING POSITION: (0) -> QB, (1) -> RB, (2) -> WR, (3) -> TE, (4) -> K, (5) -> DEF
@@ -37,21 +38,11 @@ class DraftEnv(Env):
     def step (self, action):
         ## Get the top projected points of each position
         topPoints = self.observation["top_projections"]
+        topPointsRaw = self.draftBoard.get_top_projections_raw()
 
         ## Add the player to the roster and return the modified roster as well as the list of player info
         roster, playerInfo = self.addToRoster(action)
-        ## if the player's position is kicker or defense and we are in the first 16 rounds, then reward is 0
-        if playerInfo[4] == 'K' or playerInfo[4] == 'DEF' and self.round <= 16:
-            reward = 0
-
-        ## if the player wasn't selected as a sub, then the reward is the points of that player
-        elif playerInfo[4] != 'SUB':
-            reward = topPoints[action]
-
-        ## if the player is a sub the reward is 0
-        else:
-            reward = 0
-
+        reward, pointInfo = self.calculateReward(playerInfo, action, topPoints, topPointsRaw, roster)
         ## add the reward to the total points
         self.totalPts += reward
 
@@ -67,7 +58,7 @@ class DraftEnv(Env):
         ## increase the pick in the draftboard
         self.draftBoard.removePlayer(action, 0)
         self.round +=1
-        self.draftBoard.current_pick+=1;
+        self.draftBoard.current_pick+=1
 
         ## if we are in the last round then set done to true
         if self.round > self.rounds: 
@@ -82,7 +73,7 @@ class DraftEnv(Env):
         self.observation = OrderedDict(roster = roster, top_projections = np.array(self.draftBoard.get_top_projections(), dtype='float32')) # set the state with the new roster, along with the new top projections
 
         ## set the info to the selected player
-        info = {"selected": playerInfo}
+        info = {"selected": playerInfo, "points": pointInfo}
 
         ## return the info
         return self.observation, reward, False, done, info
@@ -99,6 +90,7 @@ class DraftEnv(Env):
         ## reset the points and round
         self.totalPts = 0.0
         self.round = 1
+        self.isComplete = False
 
         ## set the observation
         self.observation = OrderedDict(roster = np.zeros(9, dtype='int8'), top_projections = np.array(self.draftBoard.get_top_projections(), dtype='float32'))
@@ -108,14 +100,12 @@ class DraftEnv(Env):
 
     ## function that adds a player to the roster list
     def addToRoster(self, position) -> tuple[list, list]:
-
         ## get a copy of the roster
-        roster = self.observation["roster"].copy()
+        roster = self.observation["roster"]
         ## get a list of the player information
         player = self.draftBoard.getPlayer(position, 0).to_list()
         ## if it is a RB or WR
         if position == 1 or position == 2:
-
             ## if the RB1 or WR1 is open then set it to 1 to fill it, and append the position to the list
             if roster[position] == 0:
                 roster[position] = 1
@@ -151,3 +141,28 @@ class DraftEnv(Env):
         ## otherwise append the sub and do not update the roster
         player.append('SUB')
         return (roster, player)
+    
+    def calculateReward(self, player, action, topPoints, topPointsRaw, roster):
+        if player[4] == 'K' or player[4] == 'DEF':
+            reward = 0
+            points = topPointsRaw[action]
+        elif player[4] != 'SUB':
+            reward = topPoints[action]
+            points = topPointsRaw[action]
+        else:
+            if self.isComplete:
+                reward = 0.5 * topPoints[action]
+                points = 0
+            else:
+                reward = 0
+                points = 0
+
+        if not self.isComplete:
+            modifiedRoster = roster.copy()
+            modifiedRoster[4] = 1
+            modifiedRoster[5] = 1
+            if all(modifiedRoster):
+                reward += 0.5
+                self.isComplete = True
+        
+        return (reward, points)

@@ -3,8 +3,8 @@ import customtkinter as ctk
 import os
 
 root = ctk.CTk()
-width = 1200
-height = 800
+width = 700
+height = 500
 root.geometry(str(width) + "x" + str(height))
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -13,6 +13,6 @@ model = DraftGUIModel()
 controller = DraftGUIController(model, view, 
                                 os.path.join(os.getcwd(), 'data', 'projection_data.csv'), 
                                 os.path.join(os.getcwd(), 'data', 'adp_data.npy'),
-                                os.path.join(os.getcwd(), 'keras', 'fantasyDrafter.keras'))
+                                os.path.join(os.getcwd(), 'keras', 'fantasyDrafter_0.keras'))
 
 root.mainloop()
