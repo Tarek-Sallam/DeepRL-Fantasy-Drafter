@@ -61,11 +61,12 @@ class PolicyGradientAgent():
         self.epsilon = epsilon
 
     ## learn function that updates the neural network given it's memory
-    def learn(self, baseline, rounds):
+    def learn(self, baseline):
         
         ## get the reward memory
         rewards = self.reward_memory 
         returns = [] ## discounted returns
+        total_loss = 0
         G = 0
 
         ## for each reward (starting from the last reward)
@@ -75,11 +76,11 @@ class PolicyGradientAgent():
             G = reward + self.discount_factor * G
             returns.insert(0, G)
         returns = np.array(returns) ## convert to np.array
-
-        returns -= (baseline / rounds) # baseline the rewards
         
+        returns -= baseline ## baseline the returns
+
         ## whiten the returns with standardization
-       # returns = (returns - np.mean(returns))/(np.std(returns) + 1e-8)
+        #returns = (returns - np.mean(returns))/(np.std(returns) + 1e-8)
 
         ## loop through the states, actions and returns
         for state, action, return_t in zip(self.state_memory, self.action_memory, returns):
@@ -97,21 +98,28 @@ class PolicyGradientAgent():
                 probs = self.policy(state)
                 probs = tf.clip_by_value(probs, 1e-10, 1.0)
                 log_prob = tf.math.log(probs[0, action])
-                loss = -log_prob * return_t # 
+                advantage = return_t - baseline
+                loss = -log_prob * advantage # 
 
+            total_loss += loss
             ## get the gradients of the loss
             grads = tape.gradient(loss, self.policy.trainable_variables)
 
             ## normalize each gradient
-            grads = [tf.clip_by_norm(grad, 1.0) for grad in grads]
+            #grads = [tf.clip_by_norm(grad, 1.0) for grad in grads]
 
             ## apply the gradients to the policy
             self.policy.optimizer.apply_gradients(zip(grads, self.policy.trainable_variables))
+
+        total_loss = total_loss / len(self.state_memory)
 
         # reset the memory
         self.state_memory = []
         self.reward_memory = []
         self.action_memory = []
+        
+        # return loss
+        return total_loss
 
     ## save the model
     def save_model(self, path):

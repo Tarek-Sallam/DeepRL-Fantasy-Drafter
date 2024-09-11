@@ -143,26 +143,43 @@ class DraftEnv(Env):
         return (roster, player)
     
     def calculateReward(self, player, action, topPoints, topPointsRaw, roster):
-        if player[4] == 'K' or player[4] == 'DEF':
-            reward = 0
-            points = topPointsRaw[action]
-        elif player[4] != 'SUB':
-            reward = topPoints[action]
-            points = topPointsRaw[action]
+        # if player[4] == 'K' or player[4] == 'DEF':
+        #     if self.round <= self.rounds - 2:
+        #         reward = topPoints[action]
+        #     else:
+        #         reward = 0
+        #     points = topPointsRaw[action]
+        # elif player[4] != 'SUB':
+        #     reward = topPoints[action]
+        #     points = topPointsRaw[action]
+        # else:
+        #     reward = 0
+        #     points = 0
+
+        if player[4] != 'SUB':
+            if player[4] == 'K' or player[4] == 'DEF':
+                if self.round <= self.rounds - 2:
+                    reward = 0
+                else:
+                    reward = topPoints[action]
+                points = topPointsRaw[action]
+            else:
+                reward = topPoints[action]
+                points = topPointsRaw[action]
+            
+            if not self.isComplete:
+                modifiedRoster = roster.copy()
+                modifiedRoster[4] = 1
+                modifiedRoster[5] = 1
+                if all(modifiedRoster):
+                    self.isComplete = True
+            
         else:
-            if self.isComplete:
-                reward = 0.5 * topPoints[action]
-                points = 0
+            if self.isComplete and not (player[1] == 'K' or player[1] == 'DEF'):
+                    reward = 0.2 * topPoints[action]
             else:
                 reward = 0
-                points = 0
-
-        if not self.isComplete:
-            modifiedRoster = roster.copy()
-            modifiedRoster[4] = 1
-            modifiedRoster[5] = 1
-            if all(modifiedRoster):
-                reward += 0.5
-                self.isComplete = True
+            points = 0
+        
         
         return (reward, points)
